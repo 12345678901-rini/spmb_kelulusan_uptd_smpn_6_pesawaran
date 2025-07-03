@@ -1,153 +1,131 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pengumuman Kelulusan SPMB 2025/2026</title>
   <style>
     body {
-      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #0047AB, #FFD700);
+      background: linear-gradient(to bottom, #0047AB, #FFCC00);
+      margin: 0;
+      padding: 0;
       color: #000;
       text-align: center;
-      padding: 0 20px;
     }
-
     header {
+      background-color: #0047AB;
+      color: white;
+      padding: 20px;
+    }
+    header img {
+      width: 80px;
+    }
+    h1 {
+      margin-top: 10px;
+    }
+    .container {
+      padding: 30px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      max-width: 400px;
+      margin: 20px auto;
+      font-size: 16px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #FFCC00;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .result {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .confetti {
+      animation: pop 1s ease-out forwards;
+    }
+    @keyframes pop {
+      0% { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    footer {
+      margin-top: 50px;
       padding: 20px;
       background-color: #0047AB;
       color: white;
     }
-
-    .logo {
-      width: 100px;
-    }
-
-    h1, h2, h3 {
-      margin: 5px 0;
-    }
-
-    main {
-      padding: 30px 0;
-    }
-
-    input[type="file"], input[type="text"] {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin: 10px;
-      width: 250px;
-      font-size: 16px;
-    }
-
-    button {
-      padding: 10px 20px;
-      background-color: #FFD700;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    #result {
-      margin-top: 20px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    .celebration {
-      margin-top: 20px;
-      display: none;
-      font-size: 22px;
-      color: green;
-      animation: fadeIn 1s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      0% { opacity: 0; transform: scale(0.9); }
-      100% { opacity: 1; transform: scale(1); }
-    }
-
     .info {
-      margin-top: 30px;
-      font-weight: bold;
-      color: red;
-    }
-
-    footer {
-      margin-top: 40px;
-      padding: 15px;
-      background-color: #0047AB;
-      color: white;
+      margin-top: 20px;
+      font-size: 16px;
     }
   </style>
 </head>
-
 <body>
   <header>
-    <img src="logo_pesawaran.png" alt="Logo Kabupaten Pesawaran" class="logo">
-    <h1>Pengumuman Kelulusan SPMB</h1>
-    <h2>UPTD SMPN 6 PESAWARAN</h2>
-    <h3>Tahun Ajaran 2025/2026</h3>
+    <img src="logo-pesawaran.png" alt="Logo Kabupaten Pesawaran" />
+    <h1>Pengumuman Kelulusan SPMB<br>UPTD SMPN 6 PESAWARAN<br>Tahun Ajaran 2025/2026</h1>
   </header>
-
-  <main>
-    <p><strong>Cek kelulusan menggunakan Nama</strong></p>
-
-    <input type="file" id="csvFile" accept=".csv">
-    <br>
-    <input type="text" id="studentName" placeholder="Masukkan Nama (contoh: diahnova)">
-    <button onclick="checkGraduation()">Cek Kelulusan</button>
-
-    <div id="result"></div>
-    <div id="celebration" class="celebration">🎉 SELAMAT! ANDA DINYATAKAN LULUS! 🎉</div>
-
-    <div class="info">
-      Informasi Penting: Bagi siswa yang LULUS, segera melakukan daftar ulang pada tanggal <u>7-8 Juli 2025</u>.
-    </div>
-  </main>
-
+  <div class="container">
+    <p>Masukkan Nama Siswa untuk mengecek kelulusan:</p>
+    <input type="file" id="csvFile" accept="kelulusan_spmb_2025.csv"><br><br>
+    <input type="text" id="inputNama" placeholder="Contoh: Olivia">
+    <button onclick="cekKelulusan()">Cek Kelulusan</button>
+    <div class="result" id="hasil"></div>
+    <div class="info" id="infoDaftarUlang"></div>
+  </div>
   <footer>
     &copy; 2025 UPTD SMPN 6 PESAWARAN
   </footer>
 
   <script>
-    let data = [];
+    let dataSiswa = {};
 
     document.getElementById('csvFile').addEventListener('change', function (e) {
+      const file = e.target.files[0];
       const reader = new FileReader();
-      reader.onload = function () {
-        const lines = reader.result.split('\n');
-        data = lines.map(line => {
-          const [nama, status] = line.trim().split(',');
-          return { nama: nama?.toLowerCase(), status: status?.trim().toLowerCase() };
-        });
+
+      reader.onload = function (event) {
+        const text = event.target.result;
+        const lines = text.trim().split('\n');
+        for (let i = 1; i < lines.length; i++) {
+          const [nama, keterangan] = lines[i].split(',');
+          dataSiswa[nama.trim()] = keterangan.trim();
+        }
+        alert("Data CSV berhasil dimuat!");
       };
-      reader.readAsText(e.target.files[0]);
+
+      reader.readAsText(file);
     });
 
-    function checkGraduation() {
-      const inputName = document.getElementById('studentName').value.trim().toLowerCase();
-      const resultDiv = document.getElementById('result');
-      const celebrationDiv = document.getElementById('celebration');
-      
-      const student = data.find(s => s.nama === inputName);
+    function cekKelulusan() {
+      const nama = document.getElementById("inputNama").value.trim();
+      const hasil = document.getElementById("hasil");
+      const info = document.getElementById("infoDaftarUlang");
+      hasil.innerHTML = "";
+      info.innerHTML = "";
 
-      if (student) {
-        resultDiv.innerHTML = `Nama: <strong>${student.nama}</strong><br>Status: <strong>${student.status}</strong>`;
-        if (student.status === 'lulus') {
-          celebrationDiv.style.display = 'block';
+      if (Object.keys(dataSiswa).length === 0) {
+        hasil.innerHTML = "Silakan unggah file CSV terlebih dahulu.";
+        return;
+      }
+
+      if (dataSiswa[nama]) {
+        if (dataSiswa[nama].toUpperCase() === "LULUS") {
+          hasil.innerHTML = `<div class='confetti'>${nama}, <span style='color:green;'>LULUS</span> 🎉🎓</div>`;
+          info.innerHTML = "<b>Selamat!</b> Silakan melakukan daftar ulang pada tanggal <b>7-8 Juli 2025</b> di sekolah.";
         } else {
-          celebrationDiv.style.display = 'none';
+          hasil.innerHTML = `${nama}, <span style='color:red;'>TIDAK LULUS</span>`;
         }
       } else {
-        resultDiv.innerHTML = '<span style="color:red">Nama tidak ditemukan. Pastikan penulisan sudah benar.</span>';
-        celebrationDiv.style.display = 'none';
+        hasil.innerHTML = "Nama tidak ditemukan. Pastikan penulisan sudah benar.";
       }
     }
   </script>
 </body>
-
 </html>
